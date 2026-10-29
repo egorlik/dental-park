@@ -9,7 +9,7 @@ document.getElementById('okt').textContent=n+', мы перезвоним вам
 document.getElementById('ok').classList.add('show');
 });
 
-/* Примеры работ. Чтобы подставить реальные фото, укажите bi (до) и ai (после) (пути к файлам). */
+/* Примеры работ. Чтобы подставить реальные фото, укажите before и after (пути к файлам). */
 var WORKS=[
 {t:'Профессиональная гигиена',d:' Бережно удалили пигментированный налёт и зубной камень за один визит. Вернули естественную белизну и гладкость эмали без вреда.',b:'#D8C27E',a:'#FFFFFF', bi:'img/work/web-1-detartra.jpg', ai:'img/work/web-2-detarta.jpg'},
 {t:'Лечение кариеса зубов ',d:'Удалили скрытый кариес, восстановили анатомическую форму жевательной поверхности и бугры. Зубы выглядят и работают как абсолютно здоровые.',b:'#CDBB8A',a:'#FBFDFC',bi:'img/work/car-1.jpg',ai:'img/work/car-2.jpg'},
@@ -23,8 +23,8 @@ return '<svg viewBox="0 0 300 120" aria-hidden="true">'+r+'</svg>';
 var box=document.getElementById('works');
 WORKS.forEach(function(w,i){
 var el=document.createElement('article');el.className='work';
-el.innerHTML='<div class="cmp"><div class="l aft"'+(w.ai?' style="background-image:url(\''+w.ai+'\')"':'')+'>'+(w.ai?'':teeth(w.a))+'</div>'
-+'<div class="l bef"'+(w.bi?' style="background-image:url(\''+w.bi+'\')"':'')+'>'+(w.bi?'':teeth(w.b))+'</div>'
+el.innerHTML='<div class="cmp"><div class="l aft"'+(w.ai?' style="background-image:url('+w.ai+')"':'')+'>'+(w.ai?'':teeth(w.a))+'</div>'
++'<div class="l bef"'+(w.bi?' style="background-image:url('+w.bi+')"':'')+'>'+(w.bi?'':teeth(w.b))+'</div>'
 +'<span class="t1">До</span><span class="t2">После</span><div class="bar"></div>'
 +'<input type="range" min="0" max="100" value="50" aria-label="Сравнить до и после: '+w.t+'"></div>'
 +'<h3>'+w.t+'</h3><p>'+w.d+'</p>';
@@ -36,7 +36,7 @@ box.appendChild(el);
 
 /* Врачи: данные для карточки «Подробнее». Фото: поле photo, например 'img/ivanova.jpg'. */
 var DOCS=[
-{n:'Дарья Юрьевна Балаур',r:'Глав-Врач',i:'АИ',photo:'img/glav.jpg',
+{n:'Балаур Дарья Юрьевна',r:'Главный врач',i:'АИ',photo:'img/glav.jpg',
  b:'Более 12 лет лечит зубы так, чтобы пациент забыл о них на долгие годы. Любит сложные случаи и художественную реставрацию, всегда объясняет, что и зачем делает.',
  e:['Государственный медицинский университет, стоматология','Курсы повышения квалификации по эндодонтии','Участник стоматологических конференций'],
  d:['Лечение кариеса','Лечение каналов','Реставрация','Профессиональная чистка']},
@@ -80,15 +80,15 @@ var bar=document.getElementById('prog'),tick=false;
 function upd(){var m=document.documentElement.scrollHeight-innerHeight;bar.style.transform='scaleX('+(m>0?Math.min(scrollY/m,1):0)+')';tick=false}
 addEventListener('scroll',function(){if(!tick){tick=true;requestAnimationFrame(upd)}},{passive:true});upd();
 if(!('IntersectionObserver' in window))return;
-var els=document.querySelectorAll('.first .hero .w>div:not(.leaf),.facts span,.head,.svc article,.doc,.work,.why li,.steps>div,.book .grid>div,.book form');
+var els=document.querySelectorAll('.first .hero .w>div:not(.leaf),.head,.svc article,.doc,.work,.why li,.steps>div,.book .grid>div,.book form,.pbox,.pnote,.rev,.g,.irow');
 var io=new IntersectionObserver(function(es){es.forEach(function(e){
-if(!e.isIntersecting)return;var el=e.target;io.unobserve(el);
-el.classList.add('in');
-setTimeout(function(){el.classList.remove('rv','in')},1300+parseFloat(el.style.getPropertyValue('--d')||0)*1000);
-})},{threshold:.12,rootMargin:'0px 0px -6% 0px'});
+/* блок вошёл в экран: показываем; полностью вышел: прячем, чтобы показать снова при возвращении */
+if(e.intersectionRatio>=.12)e.target.classList.add('in');
+else if(!e.isIntersecting)e.target.classList.remove('in');
+})},{threshold:[0,.12],rootMargin:'0px 0px -3% 0px'});
 els.forEach(function(el){
 var sib=Array.prototype.indexOf.call(el.parentNode.children,el);
-el.style.setProperty('--d',(Math.min(sib,6)*0.09).toFixed(2)+'s');
+el.style.setProperty('--d',(Math.min(sib,6)*0.1).toFixed(2)+'s');
 el.classList.add('rv');io.observe(el);
 });
 var links={};document.querySelectorAll('nav a').forEach(function(a){links[a.getAttribute('href').slice(1)]=a});
@@ -102,4 +102,24 @@ document.querySelectorAll('section[id]').forEach(function(s){so.observe(s)});
 document.querySelectorAll('.doc .ph').forEach(function(el,i){
 var p=el.dataset.photo||(DOCS[i]&&DOCS[i].photo);
 if(p){el.style.backgroundImage='url("'+p+'")';el.classList.add('has')}
+});
+
+
+/* Instagram врача: если у карточки есть data-ig, появляется кнопка с иконкой.
+   Если атрибута нет, кнопки нет. */
+var IG='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>';
+document.querySelectorAll('.doc[data-ig]').forEach(function(card){
+var more=card.querySelector('.more'),row=document.createElement('div'),a=document.createElement('a');
+row.className='act';
+more.parentNode.insertBefore(row,more);
+row.appendChild(more);
+a.className='ig';a.href=card.dataset.ig;a.target='_blank';a.rel='noopener';
+a.setAttribute('aria-label','Instagram врача');a.innerHTML=IG;
+row.appendChild(a);
+});
+document.querySelectorAll('.more').forEach(function(btn){
+btn.addEventListener('click',function(){
+var link=btn.closest('.doc').dataset.ig,b=document.getElementById('dmig');
+if(link){b.href=link;b.hidden=false}else{b.hidden=true}
+});
 });
